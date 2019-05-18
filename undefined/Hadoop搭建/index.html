@@ -224,66 +224,7 @@
 
   <div class="article-content">
     <div class="markdown-body">
-      <h1 id="Hadoop-平台搭建完整步骤"><a href="#Hadoop-平台搭建完整步骤" class="headerlink" title="==#Hadoop 平台搭建完整步骤=="></a><strong>==#Hadoop 平台搭建完整步骤==</strong></h1><hr>
-<p>环境准备</p>
-<p>也可以用VMware.</p>
-<p>创建三台虚拟机  hd-master、hd-node1、hd-node2 三台虚拟机服务器中的主机名（hostname）分别更改为master、node1、node2。</p>
-<p>创建好虚拟机之后</p>
-<p>(1) 我们为了能够更加方便来识别主机，我们使用主机名而不是使用IP地址，以免多处配置带来更多的麻烦。把hd-master、hd-node1、hd-node2三台虚拟机服务器中的主机名（hostname）分别更改为master、node1、node2。<br>命令如下:</p>
-<p>cd /etc/   // 进入配置目录</p>
-<p>vi hostname  // 编程hostname 配置文件</p>
-<p>先点击 Esc : wq 保存<br>在另外两个节点上进行相同的操作</p>
-<p>(2) 开启主机的DHCP模式，自动获取ip地址。方法如下：<br>cd /etc/sysconfig/network-scripts/           //进入网卡编辑目录<br>vi ifcfg-enp16777736                         //编辑网卡enp0s3的配置文件</p>
-<p>重启网卡 service network restart<br>三个虚拟机的ip都记一下</p>
-<p>master</p>
-<p>node1</p>
-<p>node2</p>
-<p>(3) 配置hosts<br>配置 hosts 主要是为了让机器能够相互识别主机</p>
-<p>注：hosts文件是域名解析文件，在hosts文件内配置了 ip地址和主机名的对应关系，配置之后，通过主机名，电脑就可以定位到相应的ip地址 。</p>
-<p>vi /etc/hosts<br>在hosts配置文件内容输入如下内容：使用同样的方式更改node1和node2的网卡配置。</p>
-<p>(4) ssh 免密登录<br>ssh  一路回车</p>
-<p> ssh-keygen </p>
-<p>使用如下命令将公钥复制要node1和node2节点中:</p>
-<p>ssh-copy-id root@node1<br>ssh-copy-id root@localhost<br>ssh-copy-id root@node2<br>使用 ssh node1 实验是否能免密登录</p>
-<p>注意：ssh免密设置后会在如下目录生成四个文件</p>
-<p>(5) JDK环境安装(环境配置好后, 拷贝带其他节点)<br>在 master 中新建目录 /opt/bigdata/, 此目录下存放 hadoop 大数据所需要的环境包.</p>
-<p>把下载好的JDK包和hadoop上传至master主机中,JDK是安装Hadoop的基础环境，所以需要优先安装好JDK环境(最好把包考到opt目录下下) </p>
-<pre><code>连接好后将文件拖到opt目录下即可
-</code></pre><p>解压 JDK 并配置环境变量<br>tar -zxvf jdk-8u181-linux-x64.tar.gz<br> mv jdk1.8.0_181/ bigdata/<br>然后我们配置环境变量<br>vi /etc/profile</p>
-<p>source /etc/profile<br>java -version       #验证环境是否配置成功</p>
-<p>(6)Hadoop 安装(环境配置好后, 拷贝带其他节点)<br>把 hadoop 的压缩包解压在当前文件夹然后移动到 bigdata 目录下<br>tar -zxvf hadoop-3.1.1.tar.gz<br>mv hadoop-3.1.1 bigdata/<br>配置 hadoop 环境变量<br>注：环境变量是让系统变量，在环境变量配置的命令目录后，该目录的命令将可以在任何位置都可以使用。</p>
-<p>source profile<br>hadoop verison</p>
-<p>配置 hadoop</p>
-<p>cd /opt/bigdata/hadoop-3.1.1/etc/hadoop/<br>我们需要对   core-site.xml、hadoop-env.sh、hdfs-site.xml、mapred-site.xml进行配置</p>
-<p>(1) 配置 hadoop-env.sh</p>
-<p>编辑hadoop-env.sh文件。</p>
-<p>命令如下:</p>
-<p>vi hadopp-env.sh</p>
-<p>查找JAVA_HOME 配置的位置</p>
-<p>:/export JAVA_HOME</p>
-<p>输入JAVA_HOME的绝对路径。</p>
-<p>export JAVA_HOME=/opt/bigdata/jdk1.8.0_181     (要把前面的注释#去掉)</p>
-<p>(2) 配置core-site.xml</p>
-<p>编辑core-site.xml文件。</p>
-<p>vi core-site.xml</p>
-<p>进入core-site.xml文件中结构如下所示，找到configuration的位置。</p>
-<p><configuration><br> <property><br>    <name>fs.default.name</name><br>    <value>localhost:9000</value><br> </property><br> <property><br>    <name>hadoop.temp.dir</name><br>    <value>/opt/bigdata/hadoop-3.1.1/temp</value><br> </property><br></configuration><br>(3) 配置 hdfs-site.xml<br>    vi hdfs-site.xml</p>
-<p><configuration><br>    <property><br>        <name>dfs.replication</name><br>        <value>2</value><br>    </property><br>    <property><br>        <name>dfs.datanode.name.dir</name><br>        <value>/opt/bigdata/hadoop-3.1.1/hdfs/name</value><br>    </property><br>     <property><br>        <name>dfs.datanode.data.dir</name><br>        <value>/opt/bigdata/hadoop-3.1.1/hdfs/data</value><br>    </property><br>    <property><br>        <name>dfs.namenode.secondary.http-address</name><br>        <value>node1:9001</value><br>    </property><br>    <property><br>        <name>dfs.http.address</name><br>        <value>0.0.0.0.50070</value><br>    </property><br></configuration><br>(3)  配置mapred-site.xml</p>
-<p> vi mapred-site.xml</p>
-<p><configuration><br>   <property><br>        <name>mapred.job.tracker.http.address</name><br>        <value>0.0.0.0:50030</value><br>   </property><br>   <property><br>        <name>mapred.task.tracker.http.address</name><br>        <value>0.0.0.0:50060</value><br>   </property></configuration></p>
-<p><br><br>   <property><br>        <name>mapreduce.framework.name</name><br>        <value>yarn</value><br>   </property></p>
-<p><property><br> <name>mapreduce.application.classpath</name><br> <value><br>     /opt/bigdata/hadoop-3.1.1/etc/hadoop,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/common/<em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/common/lib/</em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/hdfs/<em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/hdfs/lib/</em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/mapreduce/<em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/mapreduce/lib/</em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/yarn/<em>,<br>     /opt/bigdata/hadoop-3.1.1/share/hadoop/yarn/lib/</em><br></value><br></property><br><br>(5)  配置yarn-sit.xml</p>
-<p><property><br>  <name>yarn.nodemanager.aux-services</name><br>  <value>mapreduce_shuffle</value><br></property> </p>
-<p><property><br>  <name>yarn.resourcemanager.webapp.address</name><br>  <value>master:8099</value><br></property><br>(6) 配置workers</p>
-<p>此处因为前面配置了hosts，所以此处可以直接写主机名，如果没有配置，必须输入相应主机的ip地址。配置的workers，hadoop会把配置在这里的主机当作datanode。</p>
-<p>node1</p>
-<p>node2</p>
-<p>(7) hadoop复制到其他host</p>
-<p>把hadoop复制到所有datanode节点，此处是node1和node2。</p>
-<p>命令如下：</p>
-<p>scp -r <em> node1:/opt/<br>scp -r </em> node2:/opt/</p>
-<h2 id="starta-all-sh-启动"><a href="#starta-all-sh-启动" class="headerlink" title="starta-all.sh 启动"></a>starta-all.sh 启动</h2><p>作者：大尧酱<br>来源：CSDN<br>原文：<a href="https://blog.csdn.net/a458383896/article/details/82876411" target="_blank" rel="noopener">https://blog.csdn.net/a458383896/article/details/82876411</a><br>版权声明：本文为博主原创文章，转载请附上博文链接！</p>
-
+      
     </div>
   </div>
   
